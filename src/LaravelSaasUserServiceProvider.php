@@ -1,16 +1,16 @@
 <?php
 
-namespace TechlifyInc\LaravelRbac;
+namespace TechlifyInc\LaravelSaasUser;
 
 use Illuminate\Support\ServiceProvider;
-use TechlifyInc\LaravelRbac\Middleware\LaravelRbacEnforcePermission;
+use TechlifyInc\LaravelSaasUser\Middleware\LaravelSaasUserEnforcePermission;
 
 /**
  * Description of RbacServiceProvider
  *
  * @author 
  */
-class LaravelRbacServiceProvider extends ServiceProvider
+class LaravelSaasUserServiceProvider extends ServiceProvider
 {
 
     /**
@@ -23,7 +23,7 @@ class LaravelRbacServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/routes/routes.php');
         $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
         
-        $router->aliasMiddleware('LaravelRbacEnforcePermission', LaravelRbacEnforcePermission::class);
+        $router->aliasMiddleware('LaravelSaasUserEnforcePermission', LaravelSaasUserEnforcePermission::class);
     }
 
     /**
@@ -33,12 +33,12 @@ class LaravelRbacServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(LaravelRbac::class, function ()
+        $this->app->singleton(LaravelSaasUser::class, function ()
         {
-            return new LaravelRbac();
+            return new LaravelSaasUser();
         });
 
-        $this->app->alias(LaravelRbac::class, 'laravel-rbac');
+        $this->app->alias(LaravelSaasUser::class, 'laravel-rbac');
     }
 
 }

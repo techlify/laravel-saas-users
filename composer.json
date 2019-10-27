@@ -19,16 +19,16 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "TechlifyInc\\LaravelRbac\\": "src/"
+            "TechlifyInc\\LaravelSaasUser\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "TechlifyInc\\LaravelRbac\\LaravelRbacServiceProvider"
+                "TechlifyInc\\LaravelSaasUser\\LaravelSaasUserServiceProvider"
             ],
             "aliases": {
-                "Debugbar": "TechlifyInc\\LaravelRbac\\LaravelRbacFacade"
+                "Debugbar": "TechlifyInc\\LaravelSaasUser\\LaravelSaasUserFacade"
             }
         }
     },

@@ -1,21 +1,21 @@
 <?php
-namespace TechlifyInc\LaravelSaasUser\Traits;
+namespace Techlify\LaravelSaasUser\Entities;
 
-use TechlifyInc\LaravelSaasUser\Models\Role;
+use Techlify\LaravelSaasUser\Entities\Role;
 
 /**
- * Description of LaravelSaasUser
+ * Description of LaravelRbac
  *
  * @author 
  */
-trait LaravelSaasUser
+trait LaravelRbac
 {
 
     public function findForPassport($username)
     {
         return $this->where('email', $username)
-                ->where("enabled", true)
-                ->first();
+            ->where("enabled", true)
+            ->first();
     }
 
     public function roles()
@@ -33,7 +33,7 @@ trait LaravelSaasUser
         $slug = (is_string($role)) ? $role : $role->slug;
 
         return $this->roles()->save(
-                Role::where("slug", $slug)->firstOrFail()
+            Role::where("slug", $slug)->firstOrFail()
         );
     }
 
@@ -73,6 +73,11 @@ trait LaravelSaasUser
         if (1 == $this->id) {
             return true;
         }
+
+        if ($this->user_type_id == UserType::CLIENT_ADMIN) {
+            return true;
+        }
+
         $slug = (is_string($permission)) ? $permission : $permission->slug;
 
         foreach ($this->roles as $role) {

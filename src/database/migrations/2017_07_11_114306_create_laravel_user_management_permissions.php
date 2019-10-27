@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use TechlifyInc\LaravelRbac\Models\Permission;
+use Techlify\LaravelSaasUser\Entities\Permission;
 
 class CreateLaravelUserManagementPermissions extends Migration
 {

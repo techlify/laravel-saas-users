@@ -1,5 +1,5 @@
 <?php
-namespace TechlifyInc\LaravelRbac\Controllers;
+namespace Techlify\LaravelSaasUser\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +25,7 @@ class SessionController extends Controller
             ->where('access_token_id', $accessToken->id)
             ->update([
                 'revoked' => true
-        ]);
+            ]);
 
         $accessToken->revoke();
 

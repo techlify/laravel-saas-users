@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
-use TechlifyInc\LaravelRbac\Models\Permission;
+use Techlify\LaravelSaasUser\Entities\Permission;
 use App\User;
 
 class SetupEnablingDisablingUsers extends Migration

@@ -1,4 +1,4 @@
-# LaravelRbac
+# LaravelSaasUser
 
 Just another Role Based Access Control package for Laravel. This one focuses on keeping things simple & sweet. 
 
@@ -22,7 +22,7 @@ Add the Rbac trait to your `User` model
 
 class User extends Authenticatable
 {
-    use TechlifyInc\LaravelRbac\Traits\LaravelRbac;
+    use TechlifyInc\LaravelSaasUser\Traits\LaravelSaasUser;
 }
 ```
 
@@ -33,7 +33,7 @@ class User extends Authenticatable
 #### Creating roles
 
 ```php
-use \TechlifyInc\LaravelRbac\Models\Role;
+use \TechlifyInc\LaravelSaasUser\Models\Role;
 
 $adminRole = Role::create([
     'name' => 'Administrator',
@@ -80,7 +80,7 @@ if ($user->hasRole('admin')) {
 #### Creating permissions
 
 ```php
-use \TechlifyInc\LaravelRbac\Models\Permission;
+use \TechlifyInc\LaravelSaasUser\Models\Permission;
 
 $createPermission = Permission::create([
     'name' => 'Create product',
@@ -97,7 +97,7 @@ $removePermission = Permission::create([
 
 You can attach permission to role very simple:
 ```php
-use \TechlifyInc\LaravelRbac\Models\Role;
+use \TechlifyInc\LaravelSaasUser\Models\Role;
 
 $adminRole = Role::find(1);
 $adminRole->attachPermission($createPermission);
@@ -128,7 +128,7 @@ if (auth()->user()->hasPermission('product.create'))
 You can also enforce permissions at route level using the middleware (v0.2 onwards): 
 
 ```php
-Route::get("customers", "CustomerController@index")->middleware("LaravelRbacEnforcePermission:customer_view");
+Route::get("customers", "CustomerController@index")->middleware("LaravelSaasUserEnforcePermission:customer_view");
 ```
 
 # LaravelUserManagement is now merged into this package

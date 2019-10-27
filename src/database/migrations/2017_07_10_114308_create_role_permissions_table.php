@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateRolesTables extends Migration
+class CreateRolePermissionsTable extends Migration
 {
 
     /**
@@ -14,22 +14,17 @@ class CreateRolesTables extends Migration
      */
     public function up()
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('permission_role', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('slug')->unique();
-            $table->string('label')->nullable();
-            $table->text('description');
-            $table->boolean('is_editable')
-                ->default(true);
-            $table->unsignedBigInteger('module_id')
-                ->nullable()
-                ->default(null);
-            $table->unsignedBigInteger('client_id');
+            $table->bigInteger('permission_id')->unsigned();
+            $table->bigInteger('role_id')->unsigned();
+            $table->bigInteger('client_id')->unsigned();
             $table->unsignedBigInteger('creator_id')
                 ->nullable()
                 ->default(null);
             $table->timestamps();
-            $table->softDeletes();
+
+            $table->unique(['permission_id', 'role_id', 'client_id'], 'unique_role_permission_client');
         });
     }
 
@@ -40,6 +35,6 @@ class CreateRolesTables extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('permission_role');
     }
 }

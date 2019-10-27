@@ -1,15 +1,15 @@
 <?php
 
-namespace TechlifyInc\LaravelRbac;
+namespace TechlifyInc\LaravelSaasUser;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * Description of LaravelRbacFacade
+ * Description of LaravelSaasUserFacade
  *
  * @author 
  */
-class LaravelRbacFacade extends Facade
+class LaravelSaasUserFacade extends Facade
 {
 
     protected static function getFacadeAccessor()

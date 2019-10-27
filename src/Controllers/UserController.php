@@ -1,11 +1,15 @@
 <?php
-namespace TechlifyInc\LaravelRbac\Controllers;
+
+namespace Techlify\LaravelSaasUser\Controllers;
 
 use App\User;
 use App\Http\Controllers\Controller;
-use TechlifyInc\LaravelRbac\Models\Role;
+use Techlify\LaravelSaasUser\Entities\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Techlify\LaravelSaasUser\Entities\UserType;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeMail;
 
 class UserController extends Controller
 {
@@ -17,17 +21,22 @@ class UserController extends Controller
      */
     public function index()
     {
-        if (!auth()->user()->hasPermission("user_read")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
-        }
-        
-        $filters = request(['name', 'email', 'enabled', 'role_ids', 'sort_by', 'num_items']);
+        $filters = request([
+            'name',
+            'email',
+            'enabled',
+            'role_ids',
+            'client_id',
+            'sort_by',
+            'num_items',
+            'not_in_module_id'
+        ]);
 
         $users = User::filter($filters)
+            ->with('type')
             ->with('roles');
-            //->get();
 
-        return ["items" => $users->get(), "sql" => $users->toSql()];
+        return ["items" => $users->get()];
     }
 
     /**
@@ -38,20 +47,32 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->hasPermission("user_create")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
-        }
-
-        $this->validate(request(), [
-            "name"     => "required",
+        $rules = [
+            "name"     => "required|string",
             "email"    => "required|email",
             "password" => "required",
-        ]);
+        ];
+
+        if (auth()->user()->user_type_id == UserType::BIS_ADMIN) {
+            $rules["client_id"] = "required|exists:clients,id";
+            $rules["user_type_id"] = "required|numeric|min:2";
+        }
+
+        $this->validate(request(), $rules);
 
         $user = new User();
         $user->name = request('name');
         $user->email = request('email');
         $user->password = bcrypt(request('password'));
+        $user->user_type_id = request('user_type_id');
+        $user->is_temporary_password = true;
+
+        if (auth()->user()->user_type_id == UserType::BIS_ADMIN) {
+            $user->client_id = request('client_id');
+        } else {
+            $user->client_id = auth()->user()->client_id;
+        }
+
         if (!$user->save()) {
             return response()->json(['error' => "Failed to add the new user. "], 422);
         }
@@ -67,6 +88,8 @@ class UserController extends Controller
             }
         }
 
+        $user->otp = request('password');
+        Mail::to($user->email)->send(new WelcomeMail($user));
         return ["item" => $user];
     }
 
@@ -76,35 +99,69 @@ class UserController extends Controller
      * @param  \App\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show($id)
     {
-        if (!auth()->user()->hasPermission("user_read")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['error' => "Invalid data sent. "], 422);
         }
+        $user->roles;
 
         return ["item" => $user];
+    }
+
+    public function currentUser()
+    {
+        $id = auth()->id();
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        if (null == $user) {
+            return ["user" => new User()];
+        }
+
+        $permissions = new \Illuminate\Database\Eloquent\Collection();
+        if (count($user->roles)) {
+            foreach ($user->roles as $role) {
+                $permissions = $permissions->merge($role->permissions);
+            }
+        }
+
+        $user->permissions = $permissions->unique();
+        $user->client;
+
+        return ["user" => $user, "id" => $id];
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\User  $user
+     * @param  $id
+     * 
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
-        if (!auth()->user()->hasPermission("user_update")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
-        }
-
-        $this->validate(request(), [
+        $rules = [
             "name"  => "required",
             "email" => "required",
-        ]);
+        ];
+
+        if (auth()->user()->user_type_id == UserType::BIS_ADMIN) {
+            $rules["user_type_id"] = "required|numeric|min:2";
+        }
+
+        $this->validate(request(), $rules);
+
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => "Invalid data sent. "], 422);
+        }
 
         $user->name = request('name');
         $user->email = request('email');
+        $user->user_type_id = request('user_type_id');
 
         if (request('password') && "" != trim(request("password")) && null != request("password")) {
             $user->password = bcrypt(request('password'));
@@ -126,20 +183,66 @@ class UserController extends Controller
                 $user->assignRole($role->slug);
             }
         }
+        
+        return ["item" => $user];
+    }
 
+    public function updateCurrentUserProfile(Request $request)
+    {
+        $rules = [
+            "name"  => "required",
+            "email" => "required",
+        ];
+
+        $this->validate(request(), $rules);
+
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => "Invalid data sent. "], 422);
+        }
+
+        $user->name = request('name');
+        $user->email = request('email');
+        $user->temporarily_invited = false;
+
+        if (request('password') && "" != trim(request("password")) && null != request("password")) {
+            $user->password = bcrypt(request('password'));
+            $user->is_temporary_password = false;
+        }
+
+        if (!$user->save()) {
+            return response()->json(['error' => "Failed to add the new user. "], 422);
+        }
+
+        $permissions = new \Illuminate\Database\Eloquent\Collection();
+        if (count($user->roles)) {
+            foreach ($user->roles as $role) {
+                $permissions = $permissions->merge($role->permissions);
+            }
+        }
+
+        $user->permissions = $permissions->unique();
+        $user->client;
+        
         return ["item" => $user];
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\User  $user
+     * @param  $id
+     * 
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user)
+    public function destroy($id)
     {
-        if (!auth()->user()->hasPermission("user_delete")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => "Invalid data sent. "], 422);
+        }
+
+        if(auth()->id() == $user->id) {
+            return response()->json(['error' => "You're not allowed to delete your own account"], 422);
         }
 
         /* Delete all related objects */
@@ -172,7 +275,8 @@ class UserController extends Controller
         }
 
         $user->password = bcrypt(request('newPassword'));
-
+        $user->is_temporary_password = false;
+        
         if (!$user->save()) {
             return response()->json(['error' => "Failed to add the new user. "], 422);
         }
@@ -188,10 +292,6 @@ class UserController extends Controller
      */
     public function enable($id)
     {
-        if (!auth()->user()->hasPermission("user_enable")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
-        }
-
         $user = User::find($id);
 
         if (!$user) {
@@ -214,10 +314,6 @@ class UserController extends Controller
      */
     public function disable($id)
     {
-        if (!auth()->user()->hasPermission("user_disable")) {
-            return response()->json(['error' => "You are unauthorized to perform this action. "], 401);
-        }
-
         $user = User::find($id);
 
         if (!$user) {

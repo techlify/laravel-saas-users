@@ -1,12 +1,12 @@
 <?php
-namespace TechlifyInc\LaravelRbac;
+namespace Techlify\LaravelSaasUser;
 
 /**
  * Description of Rbac
  *
  * @author 
  */
-class LaravelRbac
+class LaravelSaasUser
 {
     //put your code here
 }

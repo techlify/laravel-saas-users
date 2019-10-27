@@ -2,20 +2,20 @@
 
 Route::group(['prefix' => 'api', 'middleware' => 'api'], function()
 {
-    Route::resource("roles", "\TechlifyInc\LaravelRbac\Controllers\RoleController");
-    Route::patch("roles/{role}/permissions/{permission}/add", "\TechlifyInc\LaravelRbac\Controllers\RoleController@addPermission");
-    Route::patch("roles/{role}/permissions/{permission}/remove", "\TechlifyInc\LaravelRbac\Controllers\RoleController@removePermission");
+    Route::resource("roles", "\TechlifyInc\LaravelSaasUser\Controllers\RoleController");
+    Route::patch("roles/{role}/permissions/{permission}/add", "\TechlifyInc\LaravelSaasUser\Controllers\RoleController@addPermission");
+    Route::patch("roles/{role}/permissions/{permission}/remove", "\TechlifyInc\LaravelSaasUser\Controllers\RoleController@removePermission");
 
-    Route::resource("permissions", "\TechlifyInc\LaravelRbac\Controllers\PermissionController");
+    Route::resource("permissions", "\TechlifyInc\LaravelSaasUser\Controllers\PermissionController");
 });
 
 Route::group(['prefix' => 'api', 'middleware' => 'api'], function()
 {
-    Route::resource("users", "TechlifyInc\LaravelRbac\Controllers\UserController");
-    Route::post('/user/logout', "TechlifyInc\LaravelRbac\Controllers\SessionController@destroy");
-    Route::get('/user/current', "TechlifyInc\LaravelRbac\Controllers\CurrentUserController@show");
-    Route::patch("user/current/update-password", "TechlifyInc\LaravelRbac\Controllers\UserController@user_password_change_own");
+    Route::resource("users", "TechlifyInc\LaravelSaasUser\Controllers\UserController");
+    Route::post('/user/logout', "TechlifyInc\LaravelSaasUser\Controllers\SessionController@destroy");
+    Route::get('/user/current', "TechlifyInc\LaravelSaasUser\Controllers\CurrentUserController@show");
+    Route::patch("user/current/update-password", "TechlifyInc\LaravelSaasUser\Controllers\UserController@user_password_change_own");
     
-    Route::patch("users/{id}/enable", "TechlifyInc\LaravelRbac\Controllers\UserController@enable");
-    Route::patch("users/{id}/disable", "TechlifyInc\LaravelRbac\Controllers\UserController@disable");
+    Route::patch("users/{id}/enable", "TechlifyInc\LaravelSaasUser\Controllers\UserController@enable");
+    Route::patch("users/{id}/disable", "TechlifyInc\LaravelSaasUser\Controllers\UserController@disable");
 });

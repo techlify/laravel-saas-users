@@ -1,8 +1,8 @@
 <?php
-namespace TechlifyInc\LaravelRbac\Controllers;
+namespace Techlify\LaravelSaasUser\Controllers;
 
 use App\Http\Controllers\Controller;
-use TechlifyInc\LaravelRbac\Models\Permission;
+use Techlify\LaravelSaasUser\Entities\Permission;
 
 class PermissionController extends Controller
 {
@@ -14,8 +14,14 @@ class PermissionController extends Controller
      */
     public function index()
     {
-        $items = Permission::orderBy("label")->get();
+        $filters = request([
+            "module_code"
+        ]);
+        
+        $items = Permission::filter($filters)
+            ->orderBy("label")
+            ->get();
 
-        return array("items" => $items, "success" => true);
+        return ["data" => $items];
     }
 }
